@@ -1,22 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is the front-end for the Post Management API, built with [Next.js](https://nextjs.org) and Tailwind CSS.
+
+## Features
+
+- ✅ View all posts in a responsive grid layout
+- ✅ Search posts by name
+- ✅ Sort posts alphabetically (A-Z or Z-A)
+- ✅ Create new posts with name, description, and image
+- ✅ Edit existing posts
+- ✅ Delete posts with confirmation
+- ✅ Upload images (up to 10MB)
+- ✅ Support for external image URLs
+- ✅ Dark mode support
+- ✅ Responsive design
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ installed
+- Backend API running on `http://localhost:5254` (or configure `NEXT_PUBLIC_API_URL`)
+
+### Installation
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. (Optional) Create a `.env.local` file to configure the API URL:
+```
+NEXT_PUBLIC_API_URL=http://localhost:5254
+```
+
+3. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Building for Production
+
+```bash
+npm run build
+npm start
+```
+
+## Project Structure
+
+- `app/page.tsx` - Main page with post list and management
+- `components/PostCard.tsx` - Component for displaying individual posts
+- `components/PostForm.tsx` - Form component for creating/editing posts
+- `lib/api.ts` - API client functions for backend communication
+- `types/post.ts` - TypeScript type definitions
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

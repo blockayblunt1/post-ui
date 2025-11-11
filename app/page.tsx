@@ -1,65 +1,192 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Post, CreatePostDto, UpdatePostDto } from '@/types/post';
+import { getAllPosts, createPost, updatePost, deletePost } from '@/lib/api';
+import PostCard from '@/components/PostCard';
+import PostForm from '@/components/PostForm';
 
 export default function Home() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<'asc' | 'desc'>('asc');
+  const [showForm, setShowForm] = useState(false);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
+
+  const loadPosts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getAllPosts(search || undefined, sort);
+      setPosts(data);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load posts';
+      setError(errorMessage);
+      console.error('Error loading posts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, sort]);
+
+  const handleCreate = async (dto: CreatePostDto) => {
+    try {
+      await createPost(dto);
+      setShowForm(false);
+      setError(null);
+      await loadPosts();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create post';
+      setError(errorMessage);
+      throw err; // Re-throw so PostForm can also show the error
+    }
+  };
+
+  const handleUpdate = async (dto: UpdatePostDto) => {
+    if (!editingPost) return;
+    try {
+      await updatePost(editingPost.id, dto);
+      setEditingPost(null);
+      setError(null);
+      await loadPosts();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update post';
+      setError(errorMessage);
+      throw err; // Re-throw so PostForm can also show the error
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await deletePost(id);
+      await loadPosts();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete post');
+    }
+  };
+
+  const handleEdit = (post: Post) => {
+    setEditingPost(post);
+    setShowForm(false);
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingPost(null);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-zinc-50 dark:bg-black">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">
+            Post Management
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-zinc-600 dark:text-zinc-400">
+            Manage your posts with ease
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Controls */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full sm:w-auto">
+            <div className="flex-1 sm:max-w-xs">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search posts..."
+                className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as 'asc' | 'desc')}
+              className="px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="asc">Sort A-Z</option>
+              <option value="desc">Sort Z-A</option>
+            </select>
+          </div>
+          <button
+            onClick={() => {
+              setEditingPost(null);
+              setShowForm(true);
+            }}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors font-medium whitespace-nowrap"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            + Create Post
+          </button>
         </div>
-      </main>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md text-red-800 dark:text-red-200">
+            {error}
+            <button
+              onClick={() => setError(null)}
+              className="ml-4 text-red-600 dark:text-red-400 hover:underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        {/* Form Modal */}
+        {(showForm || editingPost) && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mb-6">
+                {editingPost ? 'Edit Post' : 'Create New Post'}
+              </h2>
+              <PostForm
+                post={editingPost}
+                onSubmit={editingPost ? handleUpdate : handleCreate}
+                onCancel={handleCancel}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-zinc-600 dark:text-zinc-400">Loading posts...</p>
+          </div>
+        )}
+
+        {/* Posts Grid */}
+        {!loading && (
+          <>
+            {posts.length === 0 ? (
+              <div className="text-center py-12 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                <p className="text-zinc-600 dark:text-zinc-400 text-lg">
+                  {search ? 'No posts found matching your search.' : 'No posts yet. Create your first post!'}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {posts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
