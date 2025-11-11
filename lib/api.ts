@@ -1,6 +1,6 @@
 import { Post, CreatePostDto, UpdatePostDto } from '@/types/post';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:7198';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://postbackend-y79c.onrender.com';
 
 export async function getAllPosts(search?: string, sort: 'asc' | 'desc' = 'asc'): Promise<Post[]> {
   const params = new URLSearchParams();
