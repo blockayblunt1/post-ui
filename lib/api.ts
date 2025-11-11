@@ -8,7 +8,7 @@ export async function getAllPosts(search?: string, sort: 'asc' | 'desc' = 'asc')
   params.append('sort', sort);
   
   try {
-    const response = await fetch(`${API_BASE_URL}/api/posts?${params.toString()}`);
+    const response = await fetch(`${API_BASE_URL}/api/Posts?${params.toString()}`);
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Failed to fetch posts: ${response.status} ${response.statusText}. ${errorText}`);
@@ -23,14 +23,14 @@ export async function getAllPosts(search?: string, sort: 'asc' | 'desc' = 'asc')
 }
 
 export async function getPostById(id: number): Promise<Post> {
-  const response = await fetch(`${API_BASE_URL}/api/posts/${id}`);
+  const response = await fetch(`${API_BASE_URL}/api/Posts/${id}`);
   if (!response.ok) throw new Error('Failed to fetch post');
   return response.json();
 }
 
 export async function createPost(dto: CreatePostDto): Promise<Post> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/posts`, {
+    const response = await fetch(`${API_BASE_URL}/api/Posts`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export async function createPost(dto: CreatePostDto): Promise<Post> {
 
 export async function updatePost(id: number, dto: UpdatePostDto): Promise<Post> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/posts/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/Posts/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
